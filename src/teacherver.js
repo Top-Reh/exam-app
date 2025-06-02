@@ -179,7 +179,7 @@ const Teacherver = () => {
         <div className='grid justify-center items-center grid-cols-3 gap-15 md:flex md:flex-wrap md:gap-10 md:align-top md:jstify-items-start sm:flex sm:flex-wrap sm:gap-10 sm:align-top sm:jstify-items-start xs:flex xs:flex-wrap xs:gap-10 xs:align-top xs:jstify-items-start'>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Check Results</h1>
-                <p className='font-bold text-xl text-white'>You can check the results of the students!</p>
+                <p className='font-bold text-xl text-white text-center'>You can check the results of the students!</p>
                 {
                     studentResults.map((student, index) => (
                         <div key={index} className='w-96 p-4 bg-blue-200 shadow-md rounded'>
@@ -225,7 +225,7 @@ const Teacherver = () => {
             </div>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Teacher version</h1>
-                <p className='font-bold text-xl text-white'>You can upload questions and check the results!</p>
+                <p className='font-bold text-xl text-white text-center'>You can upload questions and check the results!</p>
                 <div className='bg-blue-200 shadow-md rounded w-96 p-4 gap-4 flex flex-col justify-center items-center'>
                     <h1 >Choose question type</h1>
                     <div className='grid grid-cols-2 justify-between items-center gap-4 w-full'>
@@ -323,7 +323,7 @@ const Teacherver = () => {
             </div>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Questions</h1>
-                <p className='font-bold text-xl text-white'>You can Delete any time</p>
+                <p className='font-bold text-xl text-white text-center'>You can Delete any time</p>
                 {
                     questions.map((question, index) => (
                         <div key={index} className='flex justify-between items-center gap-4 w-96 p-4 bg-white shadow-md rounded' style={{backgroundColor: viewid === question.Answers.id ? 'aqua' : '#fff'}}>
