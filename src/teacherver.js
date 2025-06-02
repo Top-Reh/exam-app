@@ -24,7 +24,6 @@ const Teacherver = () => {
         answer3: '',
         answer4: '',
         correctAnswer: '',
-        file: null,
         mark: 0,
         uploadby: 'teacher',
         type: 'multiple-choice'
@@ -84,7 +83,6 @@ const Teacherver = () => {
                 answer3: '',
                 answer4: '',
                 correctAnswer: '',
-                file: null,
                 mark: 0,
                 uploadby: 'teacher'
             });
@@ -178,7 +176,7 @@ const Teacherver = () => {
 
   return (
     <div className='w-full min-h-screen p-10 flex justify-center items-center  bg-blue-300'>
-        <div className='grid justify-center items-center grid-cols-3 gap-15'>
+        <div className='grid justify-center items-center grid-cols-3 gap-15 md:flex md:flex-wrap md:gap-10 md:align-top md:jstify-items-start sm:flex sm:flex-wrap sm:gap-10 sm:align-top sm:jstify-items-start xs:flex xs:flex-wrap xs:gap-10 xs:align-top xs:jstify-items-start'>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Check Results</h1>
                 <p className='font-bold text-xl text-white'>You can check the results of the students!</p>
@@ -250,7 +248,6 @@ const Teacherver = () => {
                                     <input placeholder='Answer 3' value={q.answer3} onChange={(e) => handleInputChange(index, 'answer3', e.target.value)} className='w-full p-2 rounded-md' />
                                     <input placeholder='Answer 4' value={q.answer4} onChange={(e) => handleInputChange(index, 'answer4', e.target.value)} className='w-full p-2 rounded-md' />
                                     <input placeholder='Correct Answer' value={q.correctAnswer} onChange={(e) => handleInputChange(index, 'correctAnswer', e.target.value)} className='w-full p-2 rounded-md' />
-                                    <input type='file' className='w-full p-2 rounded-md' />
                                     <input placeholder='Give mark' type='number' value={q.mark} onChange={(e) => handleInputChange(index, 'mark', Number(e.target.value))} className='w-full p-2 rounded-md' />
                                     <div className='flex justify-between gap-4'>
                                         <button type="submit" className='bg-blue-500 text-white p-2 rounded'>Update</button>
@@ -265,7 +262,6 @@ const Teacherver = () => {
                                 >
                                     <textarea placeholder='Question' value={q.question} onChange={(e) => handleInputChange(index, 'question', e.target.value)} className='w-full p-2 rounded-md' />
                                     <input placeholder='Correct Answer' value={q.correctAnswer} onChange={(e) => handleInputChange(index, 'correctAnswer', e.target.value)} className='w-full p-2 rounded-md' />
-                                    <input type='file' className='w-full p-2 rounded-md' />
                                     <input placeholder='Give mark' type='number' value={q.mark} onChange={(e) => handleInputChange(index, 'mark', Number(e.target.value))} className='w-full p-2 rounded-md' />
                                     <div className='flex justify-between gap-4'>
                                         <button type="submit" className='bg-blue-500 text-white p-2 rounded'>Update</button>
@@ -298,7 +294,7 @@ const Teacherver = () => {
                                     <button type="submit" className='bg-blue-500 text-white p-2 rounded'>Upload</button>
                                 </form>
                             ) : questionType === 'multiple-choice' ? (
-                                <form className='flex justify-center items-center gap-4 flex-col' onSubmit={handleUpload}>
+                                <form className='flex justify-center items-center gap-4 flex-col w-full' onSubmit={handleUpload}>
                                     <input type="hidden" name="formType" value="multiple-choice" /> 
                                     <textarea placeholder='Question' className='w-full p-2 rounded-md' value={Answers.question} onChange={e => setAnswers({ ...Answers, question: e.target.value })}></textarea>
                                     <input placeholder='Answer 1' className='w-full p-2 rounded-md' value={Answers.answer1} onChange={e => setAnswers({ ...Answers, answer1: e.target.value })}></input>
@@ -306,7 +302,6 @@ const Teacherver = () => {
                                     <input placeholder='Answer 3' className='w-full p-2 rounded-md' value={Answers.answer3} onChange={e => setAnswers({ ...Answers, answer3: e.target.value })}></input>
                                     <input placeholder='Answer 4' className='w-full p-2 rounded-md' value={Answers.answer4} onChange={e => setAnswers({ ...Answers, answer4: e.target.value })}></input>
                                     <input placeholder='Correct Answer' className='w-full p-2 rounded-md' value={Answers.correctAnswer} onChange={e => setAnswers({ ...Answers, correctAnswer: e.target.value })}></input>
-                                    <input type='file' className='w-full p-2 rounded-md' onChange={(e) => setAnswers({ ...Answers, file: e.target.files[0] })} />
                                     <input placeholder='Give mark' type='number' className='w-full p-2 rounded-md' value={Answers.mark} onChange={e => setAnswers({ ...Answers, mark: Number(e.target.value) })}></input>
                                     <button type="submit" className='bg-blue-500 text-white p-2 rounded'>Upload</button>
                                 </form>
@@ -344,7 +339,7 @@ const Teacherver = () => {
         </div>
         {
             deletethis && (
-                <div className={`fixed top-50 right-50 w-full h-full bg-black bg-opacity-50 flex justify-center items-center `}>
+                <div className={`fixed top-0 right-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center `}>
                     <div className=' flex flex-col justify-center align-middle gap-4 w-96 p-4 bg-white shadow-md rounded'>
                         <h1 className='text-center'>Delete this question.</h1>
                         <div className='flex justify-center items-center gap-4'>
