@@ -33,7 +33,7 @@ const Studentver = () => {
                     };
                 });
                 console.log('Results:', results);
-                const total = results.reduce((acc,result) => acc + result.mark, 0);
+                const total = results.reduce((acc,result) => acc + Number(result.mark), 0);
                 setTotalMarks(total);
                 console.log('Total Marks:', total);
                 await updateDoc(doc(db, "user", currentUser?.email), {
@@ -114,7 +114,7 @@ const Studentver = () => {
                             ))}
                         </ul>
                     </div>
-                ) : (
+                ) : data.Answers.type ==='fill-in-the-blank' ? (
                     <div
                         key={index}
                         className='flex flex-col justify-center items-center gap-4 w-96 p-4 bg-blue-200 shadow-md rounded'
@@ -127,6 +127,17 @@ const Studentver = () => {
                             value={answers[data.Answers.question] || ''}
                             onChange={(e) => handleAnswerChange(data.Answers.question, e.target.value)}
                         />
+                    </div>
+                ) : (
+                    <div
+                        key={index}
+                        className='flex flex-col justify-center items-center gap-4 w-96 p-4 bg-blue-200 shadow-md rounded'
+                    >
+                        <label className='text-md font-bold'>{data.Answers.question}</label>
+                        <ul className='flex justify-center items-center gap-3'>
+                            <li className='p-2 bg-white pl-5 pr-5 rounded-sm cursor-pointer hover:bg-blue-300 focus:bg-blue-300' onClick={() => handleAnswerChange(data.Answers.question,'true')}>True</li>
+                            <li className='p-2 bg-white pl-5 pr-5 rounded-sm cursor-pointer hover:bg-blue-300 focus:bg-blue-300' onClick={() => handleAnswerChange(data.Answers.question,'false')}>False</li>  
+                        </ul>
                     </div>
                 )
             ))}
