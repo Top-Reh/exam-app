@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import Teacherver from './teacherver';
 import Studentver from './studentver';
 import { AuthContextProvider } from './context/AuthContext';
+//index.js
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
