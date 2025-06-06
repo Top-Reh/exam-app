@@ -22,5 +22,3 @@ An interactive, responsive web application for conducting online exams, built wi
 - **Backend**: Firebase (Authentication, Firestore, Hosting)
 - **Deployment**: GitHub Pages
 
-## 📂 Project Structure
-
