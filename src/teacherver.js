@@ -206,7 +206,7 @@ const Teacherver = () => {
 
 
   return (
-    <div className='w-full min-h-screen p-10 flex justify-center items-center flex-col bg-blue-300'>
+    <div className='w-full min-h-screen p-10 flex justify-center items-center flex-col bg-blue-300 teacherver'>
         <div className='flex justify-start items-center w-full mb-10 pl-10 pr-10 gap-5'>
             <button className='p-3 bg-green-300 rounded-sm font-bold' onClick={handlenewRoom}>New Room +</button>
             {
