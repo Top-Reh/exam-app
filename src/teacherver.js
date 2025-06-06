@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import React, { use, useContext, useEffect, useState } from 'react';
 import {v4 as uuid} from "uuid";
 import { db } from './firebase';
@@ -16,6 +16,8 @@ const Teacherver = () => {
     const [deletethis, setdeletethis] = useState('');
     const [questionType, setQuestionType] = useState('multiple-choice');
     const [truefalsebutton, setTrueFalseButton] = useState('');
+    const [classes, setClasses] = useState(['class 123']);
+    const [chosenClass, setChosenClass] = useState(classes[0]);
     const [Answers, setAnswers] = useState({
         id: '',
         question: '',
@@ -58,11 +60,9 @@ const Teacherver = () => {
         const answersWithId = { ...Answers, id: secid, type: formType };
         const blank = { ...blankAnswers, id: secid, type: formType };
         const tandf = { ...trueFalseAnswers, id: secid, type: formType };
+        const targetDoc = doc(db, "all classes", chosenClass, "questions", secid);
         if (formType === 'fill-in-the-blank') {
-            console.log('Uploading question:', blank);
-            await setDoc(doc(db, "questions",secid), {
-            Answers: blank
-            });
+            await setDoc(targetDoc, blank);
             setBlankAnswers({
                 id: secid,
                 question: '',
@@ -71,10 +71,7 @@ const Teacherver = () => {
                 uploadby: 'teacher'
             });
         } else if (formType === 'multiple-choice') {
-            console.log('Uploading question:', answersWithId);
-            await setDoc(doc(db, "questions",secid), {
-                Answers: answersWithId
-            });
+            await setDoc(targetDoc, answersWithId);
             setAnswers({
                 id: secid,
                 question: '',
@@ -87,10 +84,8 @@ const Teacherver = () => {
                 uploadby: 'teacher'
             });
         } else if (formType === 'true-false') {
-            console.log('Uploading question:', tandf);
-            await setDoc(doc(db, "questions",secid), {
-                Answers: tandf
-            });
+            await setDoc(targetDoc, tandf);
+
             setTrueFalseAnswers({
                 id: secid,
                 question: '',
@@ -104,12 +99,11 @@ const Teacherver = () => {
     const handleView = async (id) => {
         setViewId(id);
         console.log('Viewing question with id:', id);
-        //const q = query(collection(db, "questions"), id);
-        const q = doc(db, "questions", id);
+        const q = doc(db, "all classes", chosenClass, "questions", id);
         const docSnap = await getDoc(q);
         if (docSnap.exists()) {
-            setViewQuestion([docSnap.data().Answers]);
-            console.log('view question :', docSnap.data().Answers);
+            setViewQuestion([docSnap.data()]);
+            console.log('view question :', docSnap.data());
             setView(true);
         } else {
             console.log('No such document!');
@@ -120,7 +114,7 @@ const Teacherver = () => {
     const handleUpdateNew = async (e) => {
         e.preventDefault();
         console.log('Updating question:', viewquestion[0]);
-        await setDoc(doc(db, "questions", viewquestion[0].id),{ Answers : viewquestion[0]});
+        await setDoc(doc(db, "all classes", chosenClass, "questions", viewquestion[0].id),viewquestion[0]);
         setView(false);
         setViewId('');
         setTrueFalseButton('');
@@ -132,11 +126,45 @@ const Teacherver = () => {
         setViewQuestion(updatedQuestions);
     };
 
+    const handlenewRoom = async() => {
+         const enteredName = prompt('Please enter new room name:');
+         console.log('Entered name:', enteredName);
+         if (enteredName) {
+            const name = enteredName.trim();
+            setClasses([...classes, name]);
+            await setDoc(doc(db, "all classes",name), {});
+
+            // Set the "capital" field of the city 'DC'
+            // await updateDoc(washingtonRef, {
+            //     classname: name
+            // });
+         }
+         console.log('Classes:', classes);
+    }
+
+    //fetching classes
+    useEffect(() => {
+        const fetch = async () => {
+            const querySnapshot = await getDocs(collection(db, "all classes"));
+            const classArray = [];
+            querySnapshot.forEach((doc) => {
+                classArray.push(doc.id);
+            });
+            setClasses(classArray);
+            if (classArray.length > 0) {
+                setChosenClass(classArray[0]);
+            };
+            console.log('Classes fetched:', classArray);
+        };
+        fetch();
+    }, []);
+
+    //deleting questions
     useEffect(() => {
         const fetch = async () => {
             if (Delete) {
                 console.log('Deleting question with id:', deletethis);
-                await deleteDoc(doc(db, "questions",deletethis));  
+                await deleteDoc(doc(db,"all classes", chosenClass, "questions",deletethis));  
                 setDelete(false);
                 setdeletethis('');
             } else {
@@ -146,86 +174,100 @@ const Teacherver = () => {
         fetch();
     }, [deletethis, Delete]);
 
+    //questions that are uploaded
     useEffect(() => {
         const fetch = async () => {
-            const querySnapshot = await getDocs(collection(db, "questions"));
+            const querySnapshot = await getDocs(collection(db, "all classes", chosenClass, "questions"));
             const questionsArray = [];
             querySnapshot.forEach((doc) => {
-            questionsArray.push(doc.data());
+            questionsArray.push({ id: doc.id, ...doc.data() });
             });
+            console.log('Questions fetched:', questionsArray);
             setQuestions(questionsArray);
         };
         fetch();
-    }, [Answers, Delete,view,blankAnswers,trueFalseAnswers]);
+    }, [Answers, Delete,view,blankAnswers,trueFalseAnswers,chosenClass]);
 
+    //student results
     useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "user"), (querySnapshot) => {
-        const resultsArray = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.role === 'student') {
-                resultsArray.push(data);
-            }
+        const unsubscribe = onSnapshot(collection(db, "user"), (querySnapshot) => {
+            const resultsArray = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.role === 'student') {
+                    resultsArray.push(data);
+                }
+            });
+            setStudentResults(resultsArray);
         });
-        setStudentResults(resultsArray);
-    });
 
-    return () => unsubscribe();
-}, []);
+        return () => unsubscribe();
+    }, []);
 
 
   return (
-    <div className='w-full min-h-screen p-10 flex justify-center items-center  bg-blue-300'>
-        <div className='grid justify-center items-center grid-cols-3 gap-15 md:flex md:flex-wrap md:gap-10 md:align-top md:jstify-items-start sm:flex sm:flex-wrap sm:gap-10 sm:align-top sm:jstify-items-start xs:flex xs:flex-wrap xs:gap-10 xs:align-top xs:jstify-items-start'>
+    <div className='w-full min-h-screen p-10 flex justify-center items-center flex-col bg-blue-300'>
+        <div className='flex justify-start items-center w-full mb-10 pl-10 pr-10 gap-5'>
+            <button className='p-3 bg-green-300 rounded-sm font-bold' onClick={handlenewRoom}>New Room +</button>
+            {
+                classes.length > 0 && (
+                    classes.map((name, index) => (
+                        <button className='p-3 bg-gray-300 rounded-sm font-bold' key={index} onClick={() => {setChosenClass(name);setView(false)}} style={{backgroundColor : chosenClass === name ? 'white' : '#d6d6d6bf'}}>{name}</button>
+                    ))
+                )
+            }
+        </div>
+        <div className='grid justify-center items-start grid-cols-3 gap-15 md:flex md:flex-wrap md:gap-10 md:align-top md:jstify-items-start sm:flex sm:flex-wrap sm:gap-10 sm:align-top sm:jstify-items-start xs:flex xs:flex-wrap xs:gap-10 xs:align-top xs:jstify-items-start'>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Check Results</h1>
-                <p className='font-bold text-xl text-white text-center'>You can check the results of the students!</p>
                 {
                     studentResults.map((student, index) => (
-                        <div key={index} className='w-96 p-4 bg-blue-200 shadow-md rounded'>
-                            <div className='flex justify-between items-center gap-4 p-4'>
-                                <h1 className='text-xl font-bold'>{student.name}</h1>
-                                <p className='text-lg'>Total marks: {student.totalMarks}</p>
-                                <button className='bg-blue-500 text-white p-2 rounded' onClick={() => toggleAccordion(index)}>Details</button>
-                            </div>
-                            
-                            {openIndex === index && (
-                                <div>
-                                    <div className='grid grid-cols-3 w-full gap-4 p-4 '>
-                                    <p className='text-m font-bold text-start'>question</p>
-                                    <p className='text-base font-bold text-center'>Answer</p>
+                        <div className='flex gap-3 justify-center items-center'>
+                            <h2 className='p-3 bg-white rounded-sm'>{student.class}</h2>
+                            <div key={index} className='w-96 p-4 bg-blue-200 shadow-md rounded'>
+                                <div className='flex justify-between items-center gap-4 p-4'>
+                                    <h1 className='text-xl font-bold'>{student.name}</h1>
+                                    <p className='text-lg'>Total marks: {student.totalMarks}</p>
+                                    <button className='bg-blue-500 text-white p-2 rounded' onClick={() => toggleAccordion(index)}>Details</button>
                                 </div>
-                                {
-                                    student.results.map((result, resIndex) => (
-                                    <div key={resIndex} className='grid grid-cols-3 w-full gap-4 p-4 '>
-                                        <p className='text-m text-start'>{result.question}</p>
-                                        <p className='text-base text-center'>{result.userAnswer}</p>
-                                        <div className='flex justify-end items-center'>
-                                            {
-                                                result.correctAnswer === result.userAnswer ? (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-green-500">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                    </svg>
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-red-500">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                                    </svg>
-                                                )
-                                            }
-                                        </div>
+                                
+                                {openIndex === index && (
+                                    <div>
+                                        <div className='grid grid-cols-3 w-full gap-4 p-4 '>
+                                        <p className='text-m font-bold text-start'>question</p>
+                                        <p className='text-base font-bold text-center'>Answer</p>
                                     </div>
-                                    ))
-                                }
-                                </div>
-                            )}
-                            
+                                    {
+                                        student.results.map((result, resIndex) => (
+                                        <div key={resIndex} className='grid grid-cols-3 w-full gap-4 p-4 '>
+                                            <p className='text-m text-start'>{result.question}</p>
+                                            <p className='text-base text-center'>{result.userAnswer}</p>
+                                            <div className='flex justify-end items-center'>
+                                                {
+                                                    result.correctAnswer === result.userAnswer ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-green-500">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-red-500">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                        </svg>
+                                                    )
+                                                }
+                                            </div>
+                                        </div>
+                                        ))
+                                    }
+                                    </div>
+                                )}
+                                
+                            </div>
                         </div>
                     ))
                 }
             </div>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Teacher version</h1>
-                <p className='font-bold text-xl text-white text-center'>You can upload questions and check the results!</p>
                 <div className='bg-blue-200 shadow-md rounded w-96 p-4 gap-4 flex flex-col justify-center items-center'>
                     <h1 >Choose question type</h1>
                     <div className='grid grid-cols-2 justify-between items-center gap-4 w-full'>
@@ -323,14 +365,13 @@ const Teacherver = () => {
             </div>
             <div className='flex flex-col justify-center items-center gap-4'>
                 <h1 className='font-bold text-2xl text-white'>Questions</h1>
-                <p className='font-bold text-xl text-white text-center'>You can Delete any time</p>
                 {
                     questions.map((question, index) => (
-                        <div key={index} className='flex justify-between items-center gap-4 w-96 p-4 bg-white shadow-md rounded' style={{backgroundColor: viewid === question.Answers.id ? 'aqua' : '#fff'}}>
-                            <h5 className=''>{question.Answers.question}</h5>
+                        <div key={index} className='flex justify-between items-center gap-4 w-96 p-4 bg-white shadow-md rounded' style={{backgroundColor: viewid === question.id ? 'aqua' : '#fff'}}>
+                            <h5 className=''>{question.question}</h5>
                             <div className='flex justify-center items-center gap-4'>
-                                <button className='bg-blue-500 text-white p-2 rounded' onClick={() => handleView(question.Answers.id)}>View</button>
-                                <button className='bg-red-500 text-white p-2 rounded' onClick={() => setdeletethis(question.Answers.id)}>Delete</button>
+                                <button className='bg-blue-500 text-white p-2 rounded' onClick={() => {handleView(question.id);setQuestionType(question.type)}}>View</button>
+                                <button className='bg-red-500 text-white p-2 rounded' onClick={() => setdeletethis(question.id)}>Delete</button>
                             </div>
                         </div>
                     ))
@@ -344,7 +385,7 @@ const Teacherver = () => {
                         <h1 className='text-center'>Delete this question.</h1>
                         <div className='flex justify-center items-center gap-4'>
                             <button className='bg-red-500 text-white p-2 rounded' onClick={() => setDelete(true)}>Delete</button>
-                            <buttion className='bg-blue-500 text-white p-2 rounded cursor-pointer' onClick={() => {setDelete(false);setdeletethis('')}}>Cancle</buttion>
+                            <button className='bg-blue-500 text-white p-2 rounded cursor-pointer' onClick={() => {setDelete(false);setdeletethis('')}}>Cancle</button>
                         </div>
                     </div>
                 </div>
